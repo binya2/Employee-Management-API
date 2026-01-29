@@ -1,44 +1,43 @@
 from fastapi import APIRouter, HTTPException
 
 from app.database import db
-from app.models import EmployeeCreate, EmployeeUpdate, Employee
+from app.models import Employee, EmployeeCreate, EmployeeResponse, EmployeeUpdate
 
 router = APIRouter(prefix="/employees", tags=["employees"])
 
 
-@router.get("")
+@router.get("", response_model=list[EmployeeResponse])
 def get_employees():
     return [e.to_dict() for e in db.get_all_employees()]
 
 
-@router.get("/{emp_id}")
+@router.get("/{emp_id}", response_model=EmployeeResponse)
 def get_employee(emp_id: str):
-    employee = db.get_employee_by_id(emp_id)
-    if not employee:
+    emp = db.get_employee_by_id(emp_id)
+    if not emp:
         raise HTTPException(status_code=404, detail="Employee not found")
-    return employee
+    return emp.to_dict()
 
 
-@router.post("")
-def create_employee(employee: EmployeeCreate):
-    if db.get_employee_by_id(employee.id):
+@router.post("", response_model=EmployeeResponse)
+def create_employee(emp: EmployeeCreate):
+    if db.get_employee_by_id(emp.id):
         raise HTTPException(status_code=400, detail="Employee ID already exists")
 
-    new_emp = Employee(employee.id, employee.first_name, employee.last_name, employee.office_name, employee.job_title)
+    new_emp = Employee(emp.id, emp.first_name, emp.last_name, emp.office_name, emp.job_title)
     return db.add_employee(new_emp).to_dict()
 
 
-@router.put("/{emp_id}")
-def update_employee(emp_id: str, employee_data: EmployeeUpdate):
-    employee = db.update_employee(emp_id, employee_data.model_dump(exclude_unset=True))
-    if not employee:
+@router.put("/{emp_id}", response_model=EmployeeResponse)
+def update_employee(emp_id: str, emp_update: EmployeeUpdate):
+    updated = db.update_employee(emp_id, emp_update.model_dump(exclude_unset=True))
+    if not updated:
         raise HTTPException(status_code=404, detail="Employee not found")
-    return employee
+    return updated.to_dict()
 
 
-@router.delete("/employees/{emp_id}")
+@router.delete("/{emp_id}")
 def delete_employee(emp_id: str):
-    success = db.delete_employee(emp_id)
-    if not success:
+    if not db.delete_employee(emp_id):
         raise HTTPException(status_code=404, detail="Employee not found")
-    return {"detail": "Employee deleted"}
+    return {"message": "Employee deleted"}

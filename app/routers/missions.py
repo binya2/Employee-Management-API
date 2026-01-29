@@ -1,18 +1,18 @@
 from fastapi import APIRouter, HTTPException
 
 from app.database import db
-from app.models import Mission, MissionCreate, MissionResponse
+from app.models import Mission, MissionCreate, MissionResponse, MissionUpdate
 
 router = APIRouter(prefix="/missions", tags=["missions"])
 
 
 @router.get("", response_model=list[MissionResponse])
-def get_all_mission():
+def get_missions():
     return [m.to_dict() for m in db.get_all_missions()]
 
 
 @router.get("/{mission_id}", response_model=MissionResponse)
-def get_mission_by_id(mission_id):
+def get_mission(mission_id: str):
     mission = db.get_mission_by_id(mission_id)
     if not mission:
         raise HTTPException(status_code=404, detail="Mission not found")
@@ -20,7 +20,7 @@ def get_mission_by_id(mission_id):
 
 
 @router.post("", response_model=MissionResponse)
-def create_new_mission(mission: MissionCreate):
+def create_mission(mission: MissionCreate):
     if db.get_mission_by_id(mission.id):
         raise HTTPException(status_code=400, detail="Mission ID already exists")
 
@@ -32,16 +32,23 @@ def create_new_mission(mission: MissionCreate):
     return db.add_mission(new_mission).to_dict()
 
 
-@router.put('/missions/{mission_id}')
-def update_mission(mission_id, MissionUpdate):
-    pass
-
-
-@router.delete('/missions/{mission_id}')
-def delete_mission(mission_id):
-    pass
-
-
 @router.get("/employee/{emp_id}", response_model=list[MissionResponse])
-def get_missions_by_employee(emp_id):
+def get_missions_by_employee(emp_id: str):
     return [m.to_dict() for m in db.get_missions_by_employee(emp_id)]
+
+
+# --- החלקים שהיו חסרים וגרמו לשגיאה 405 ---
+
+@router.put("/{mission_id}", response_model=MissionResponse)
+def update_mission(mission_id: str, mission_update: MissionUpdate):
+    updated = db.update_mission(mission_id, mission_update.model_dump(exclude_unset=True))
+    if not updated:
+        raise HTTPException(status_code=404, detail="Mission not found")
+    return updated.to_dict()
+
+
+@router.delete("/{mission_id}")
+def delete_mission(mission_id: str):
+    if not db.delete_mission(mission_id):
+        raise HTTPException(status_code=404, detail="Mission not found")
+    return {"message": "Mission deleted"}
