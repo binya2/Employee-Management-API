@@ -1,12 +1,12 @@
 import pytest
+import pytest_asyncio  # הוספנו את הייבוא הזה
 from httpx import AsyncClient, ASGITransport
 from main import app
 
 
 # --- Fixture ---
-# זהו "כלי עזר" שרץ לפני כל טסט ומכין לנו את הקליינט
-# חוסך לנו לכתוב את השורות האלו שוב ושוב בכל פונקציה
-@pytest.fixture
+
+@pytest_asyncio.fixture(loop_scope="function")
 async def async_client():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:
@@ -49,21 +49,18 @@ async def test_create_employee(async_client):
 async def test_get_employees(async_client):
     response = await async_client.get("/api/employees")
     assert response.status_code == 200
-    assert len(response.json()) > 0  # Should have sample data + created test user
+    assert len(response.json()) > 0
 
 
 @pytest.mark.asyncio
 async def test_get_employee_by_id(async_client):
-    # נסתמך על העובד שיצרנו בטסט הקודם (או ניצור חדש אם הטסטים רצים במקביל)
-    # לצורך הפשטות נניח שהם רצים סדרתית או נשתמש בנתוני דוגמה
-    response = await async_client.get("/api/employees/E001")  # E001 קיים בנתוני דוגמה
+    response = await async_client.get("/api/employees/E001")
     assert response.status_code == 200
     assert response.json()["id"] == "E001"
 
 
 @pytest.mark.asyncio
 async def test_update_employee(async_client):
-    # נעדכן את E002
     payload = {"job_title": "Senior Manager"}
     response = await async_client.put("/api/employees/E002", json=payload)
     assert response.status_code == 200
@@ -72,17 +69,14 @@ async def test_update_employee(async_client):
 
 @pytest.mark.asyncio
 async def test_delete_employee(async_client):
-    # ניצור עובד זמני רק כדי למחוק אותו
     temp_emp = {
         "id": "DEL_ME", "first_name": "D", "last_name": "L", "office_name": "O", "job_title": "J"
     }
     await async_client.post("/api/employees", json=temp_emp)
 
-    # נמחק אותו
     response = await async_client.delete("/api/employees/DEL_ME")
     assert response.status_code == 200
 
-    # נוודא שהוא נמחק
     check = await async_client.get("/api/employees/DEL_ME")
     assert check.status_code == 404
 
@@ -94,7 +88,7 @@ async def test_create_mission(async_client):
     payload = {
         "id": "TEST_MISSION_01",
         "title": "Test Mission",
-        "assigned_to": "E001",  # חייב להיות עובד קיים
+        "assigned_to": "E001",
         "status": "Pending",
         "priority": "Low",
         "deadline": "2026-01-01"
@@ -113,7 +107,7 @@ async def test_get_missions(async_client):
 
 @pytest.mark.asyncio
 async def test_get_mission_by_id(async_client):
-    response = await async_client.get("/api/missions/M001")  # M001 קיים בדוגמה
+    response = await async_client.get("/api/missions/M001")
     assert response.status_code == 200
     assert response.json()["id"] == "M001"
 
@@ -122,7 +116,6 @@ async def test_get_mission_by_id(async_client):
 async def test_get_missions_by_employee(async_client):
     response = await async_client.get("/api/missions/employee/E001")
     assert response.status_code == 200
-    # E001 אמור לקבל לפחות משימה אחת מהדוגמה
     assert isinstance(response.json(), list)
 
 
@@ -136,7 +129,6 @@ async def test_update_mission(async_client):
 
 @pytest.mark.asyncio
 async def test_delete_mission(async_client):
-    # ניצור משימה למחיקה
     temp_mission = {
         "id": "DEL_MISS", "title": "T", "assigned_to": "E001",
         "status": "Pending", "priority": "Low", "deadline": "2025"
