@@ -1,6 +1,8 @@
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.0
-pytest==7.4.3
-httpx==0.25.2
-pytest-asyncio==0.21.1
+fastapi
+uvicorn
+pydantic
+pytest
+httpx
+pytest-asyncio
+pytest-cov
+flake8
