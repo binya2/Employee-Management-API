@@ -46,6 +46,7 @@ class Employee:
             "updated_at": self.updated_at
         }
 
+
 # --- Mission Models ---
 class MissionStatus(str, Enum):
     PENDING = "Pending"
