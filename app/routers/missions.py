@@ -1,21 +1,35 @@
-from fastapi import APIRouter
-from models import MissionCreate, MissionUpdate
+from fastapi import APIRouter, HTTPException
 
-router = APIRouter()
+from app.database import db
+from app.models import Mission, MissionCreate, MissionResponse
+
+router = APIRouter(prefix="/missions", tags=["missions"])
 
 
-@router.get('/missions')
+@router.get("", response_model=list[MissionResponse])
 def get_all_mission():
-    pass
+    return [m.to_dict() for m in db.get_all_missions()]
 
-@router.get('/missions/{mission_id')
+
+@router.get("/{mission_id}", response_model=MissionResponse)
 def get_mission_by_id(mission_id):
-    pass
+    mission = db.get_mission_by_id(mission_id)
+    if not mission:
+        raise HTTPException(status_code=404, detail="Mission not found")
+    return mission.to_dict()
 
 
-@router.post('missions')
-def create_new_mission(MissionCreate):
-    pass
+@router.post("", response_model=MissionResponse)
+def create_new_mission(mission: MissionCreate):
+    if db.get_mission_by_id(mission.id):
+        raise HTTPException(status_code=400, detail="Mission ID already exists")
+
+    if not db.get_employee_by_id(mission.assigned_to):
+        raise HTTPException(status_code=400, detail="Assigned employee does not exist")
+
+    new_mission = Mission(mission.id, mission.title, mission.assigned_to, mission.status, mission.priority,
+                          mission.deadline)
+    return db.add_mission(new_mission).to_dict()
 
 
 @router.put('/missions/{mission_id}')
@@ -27,8 +41,7 @@ def update_mission(mission_id, MissionUpdate):
 def delete_mission(mission_id):
     pass
 
-@router.get('/missions/employee/{emp_id}')
+
+@router.get("/employee/{emp_id}", response_model=list[MissionResponse])
 def get_missions_by_employee(emp_id):
-    pass
-
-
+    return [m.to_dict() for m in db.get_missions_by_employee(emp_id)]
