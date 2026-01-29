@@ -37,8 +37,6 @@ def get_missions_by_employee(emp_id: str):
     return [m.to_dict() for m in db.get_missions_by_employee(emp_id)]
 
 
-# --- החלקים שהיו חסרים וגרמו לשגיאה 405 ---
-
 @router.put("/{mission_id}", response_model=MissionResponse)
 def update_mission(mission_id: str, mission_update: MissionUpdate):
     updated = db.update_mission(mission_id, mission_update.model_dump(exclude_unset=True))
