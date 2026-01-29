@@ -1,9 +1,11 @@
 from fastapi import FastAPI
-from app.routers import employees
+from app.routers import employees, missions
 
 app = FastAPI()
 
+
 app.include_router(employees.router, prefix="/api")
+app.include_router(missions.router, prefix="/api")
 
 @app.get("/")
 def root():
@@ -12,3 +14,5 @@ def root():
 @app.get("/health")
 def health_check():
     return {"status": "healthy"}
+app = FastAPI()
+

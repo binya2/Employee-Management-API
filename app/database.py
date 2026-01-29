@@ -1,8 +1,9 @@
 from typing import List, Optional
-from app.models import EmployeeBase, EmployeeCreate, EmployeeUpdate
+from app.models import EmployeeBase, EmployeeCreate, EmployeeUpdate, Mission, MissionUpdate
 
 class Database:
     employees: List[EmployeeBase] = []
+    missions: List[Mission] = []
 
     def add_employee(self, employee: EmployeeCreate): 
         self.employees.append(employee)
@@ -47,4 +48,22 @@ class Database:
         ]
         self.employees.extend(sample_employees)
 
+    
+    def add_mission(self, mission: Mission): 
+        self.missions.append(mission)
+        return mission
+    
 
+    def get_all_missions(self) -> List[Mission]:
+        return self.missions
+    
+    def get_mission_by_id(self, mission_id) -> Optional[Mission]:
+        for mission in self.missions: 
+            if mission.id == mission_id:
+                return mission
+            
+    
+    def get_missions_by_employee(self, emp_id) -> Optional[Mission]:
+        for mission in self.missions:
+            for emp in self.employees:
+                pass
