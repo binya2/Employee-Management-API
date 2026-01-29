@@ -11,31 +11,25 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v5 v5
+      with:
+        python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Run linting
-        run: |
-          pip install flake8
-          flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Run linting
+      run: |
+        flake8 app/ --count --select=E9,F63,F7,F82 --show-source --statistics
 
-      - name: Run tests
-        run: |
-          pytest tests/ -v
-
-      - name: Test coverage
-        run: |
-          pip install pytest-cov
-          pytest --cov=app tests/
+    - name: Run tests with coverage
+      run: |
+        pytest --cov=app tests/ -v
 
   build:
     needs: test
@@ -43,7 +37,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
-      - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-      - name: Build success
-        run: echo "Build completed successfully!"
+    - name: Build success
+      run: echo "Build completed successfully!"
