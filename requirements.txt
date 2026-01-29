@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic
+pytest
+httpx
+pytest-asyncio
+pytest-cov
+flake8
